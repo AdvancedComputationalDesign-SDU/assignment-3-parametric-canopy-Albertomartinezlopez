@@ -1,131 +1,81 @@
-"""
-Assignment 3: Parametric Structural Canopy
-
-Author: Your Name
-
-Description:
-This script generates a parametric structural canopy using depth maps and recursive geometry generation.
-It explores different functions to control both the depth map and the fractal geometry to generate a
-structural system composed of:
-- A shell/gridshell
-- A set of vertical supports
-
-The script also combines different strategies for surface tessellation to achieve a non-uniform tessellation
-of the input surface.
-
-Note: This script is intended to be used within Grasshopper's Python scripting component.
-"""
-
-# Import necessary libraries
-import Rhino
-import Rhino.Geometry as rg
-import math
+import rhinoscriptsyntax as rs
 import random
 
-# Define input parameters (These should be connected to Grasshopper inputs)
-# base_surface: The input surface for the canopy (Type: Surface)
-# depth_map_control: A numerical value controlling the depth variation (Type: Number)
-# recursion_params: A dictionary containing parameters for recursive geometry (Type: Dict)
-# tessellation_strategy: The tessellation method ('quad', 'triangular', 'voronoi') (Type: String)
-# support_points: Points where the vertical supports will be placed (Type: List of Points)
-
-# Example default parameters (remove when using in Grasshopper)
-# base_surface = rg.PlaneSurface(rg.Plane.WorldXY, rg.Interval(-10, 10), rg.Interval(-10, 10))
-# depth_map_control = 5.0
-# recursion_params = {
-#     'max_depth': 3,
-#     'angle': 30,
-#     'length': 5,
-#     'length_reduction': 0.7,
-#     'branches': 2,
-#     'angle_variation': 15
-# }
-# tessellation_strategy = 'quad'
-# support_points = [rg.Point3d(0, 0, 0)]
-
-def generate_depth_map(surface, control_value):
+def create_branch(start_point, direction, level, angle_range, length_range, max_levels, target_height):
     """
-    Modifies the input surface based on a control function to create a depth map.
+    Recursively creates branches.
 
-    Parameters:
-    - surface: The base surface for the canopy (rg.Surface)
-    - control_value: A numerical value controlling the depth variation
+    Args:
+        start_point (tuple): Starting point of the branch.
+        direction (tuple): Direction vector of the branch.
+        level (int): Current level of branching.
+        angle_range (tuple): Minimum and maximum angle for branching.
+        length_range (tuple): Minimum and maximum length for branches.
+        max_levels (int): Maximum depth of branching.
+        target_height (float): Approximate height where the branches should end.
 
     Returns:
-    - modified_surface: The surface after applying the depth map
+        tuple: A tuple containing a list of branch lines and a list of end points of the last level branches.
     """
-    # TODO: Implement depth map generation logic
-    # Potential avenues:
-    # - Use mathematical functions like sine or cosine to create undulations
-    # - Manipulate control points of the surface
-    # - Use image-based height maps for more complex variations
-    pass
+    # Base case: Stop recursion if maximum depth is reached
+    if level > max_levels:
+        # Adjust endpoint height to match target height with slight variation
+        adjusted_point = (start_point[0], start_point[1], target_height + random.uniform(-1.0, 1.0))
+        return ([], [adjusted_point])
 
-def tessellate_surface(surface, strategy='quad'):
-    """
-    Tessellates the input surface using the specified strategy.
+    branches = []  # Store the lines representing branches
+    end_points = []  # Store the endpoints of the branches
 
-    Parameters:
-    - surface: The surface to tessellate (rg.Surface)
-    - strategy: The tessellation method ('quad', 'triangular', 'voronoi')
+    # Generate a random length for the current branch
+    branch_length = random.uniform(*length_range)
 
-    Returns:
-    - tessellated_mesh: A mesh representing the tessellated surface
-    """
-    # TODO: Implement tessellation logic based on the chosen strategy
-    # Potential avenues:
-    # - For 'quad', create a grid of points and connect them
-    # - For 'triangular', subdivide quads into triangles
-    # - For 'voronoi', generate seed points and create Voronoi cells
-    pass
+    # Calculate the endpoint of the branch
+    end_point = rs.PointAdd(start_point, rs.VectorScale(direction, branch_length))
 
-def generate_recursive_supports(start_point, params, depth=0):
-    """
-    Generates recursive geometry (e.g., fractal patterns) for vertical supports.
+    # Add the branch as a line in Rhino
+    branches.append(rs.AddLine(start_point, end_point))
 
-    Parameters:
-    - start_point: The starting point for recursion (rg.Point3d)
-    - params: A dictionary containing parameters for recursion control
-    - depth: The current recursion depth
+    # Determine the number of child branches (randomized for natural variation)
+    num_branches = random.randint(2, 3)
 
-    Returns:
-    - curves: A list of generated curves representing the supports
-    """
-    # Base case for recursion
-    if depth >= params['max_depth']:
-        return []
-    
-    # TODO: Implement recursive geometry generation logic
-    # Hints:
-    # - Calculate the direction and length of branches
-    # - Create lines or curves for each branch
-    # - Use recursion to generate sub-branches
-    pass
+    for _ in range(num_branches):
+        # Create a random direction by perturbing the current direction
+        angle = random.uniform(*angle_range)  # Random angle within the given range
+        axis = (
+            random.uniform(-1, 1),
+            random.uniform(-1, 1),
+            random.uniform(-1, 1)
+        )  # Generate a random rotation axis
+        axis = rs.VectorUnitize(axis)  # Normalize the axis
 
-# Main execution (This code would be inside the GhPython component)
-# Inputs from Grasshopper should be connected to the respective variables
-# base_surface, depth_map_control, recursion_params, tessellation_strategy, support_points
+        # Rotate the direction vector by the random angle around the random axis
+        rotated_direction = rs.VectorRotate(direction, angle, axis)
 
-if base_surface and depth_map_control and recursion_params and tessellation_strategy and support_points:
-    # Generate modified surface with depth map
-    # TODO: Call generate_depth_map and assign the result to modified_surface
-    # modified_surface = generate_depth_map(base_surface, depth_map_control)
-    
-    # Tessellate the modified surface
-    # TODO: Call tessellate_surface and assign the result to canopy_mesh
-    # canopy_mesh = tessellate_surface(modified_surface, tessellation_strategy)
-    
-    # Generate vertical supports
-    supports = []
-    for pt in support_points:
-        # TODO: Call generate_recursive_supports and extend the supports list
-        # curves = generate_recursive_supports(pt, recursion_params)
-        # supports.extend(curves)
-        pass
-    
-    # Assign outputs to Grasshopper components
-    # Output variables (e.g., canopy_mesh, supports) should be connected to the component outputs
+        # Combine the rotated direction with the current direction for natural growth
+        rotation = rs.VectorAdd(rotated_direction, direction)
+        rotation = rs.VectorUnitize(rotation)  # Normalize the resulting vector
 
-else:
-    # Handle cases where inputs are not provided
-    pass
+        # Recursively create child branches
+        child_branches, child_end_points = create_branch(
+            end_point, rotation, level + 1, angle_range, length_range, max_levels, target_height
+        )
+        branches.extend(child_branches)  # Add the child branches to the main list
+        end_points.extend(child_end_points)  # Collect the endpoints from child branches
+
+    return (branches, end_points)
+
+# Parameters
+start_point = (0, 0, 0) 
+initial_direction = (0, 0, 1) 
+angle_range = (-45, 45) 
+length_range = (2.0, 5.0) 
+max_levels = 5 
+target_height = 20.0 
+
+# Generate the tree structure by initiating the recursive branching function
+branches, last_level_end_points = create_branch(start_point, initial_direction, 1, angle_range, length_range, max_levels, target_height
+)
+
+# Output the results
+a = branches
+b = last_level_end_points 
