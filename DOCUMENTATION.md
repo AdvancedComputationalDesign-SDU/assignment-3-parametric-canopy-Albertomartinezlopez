@@ -12,56 +12,109 @@
 
 ## Pseudo-Code
 
-*(Provide detailed pseudo-code explaining the logic of your program. Outline your functions for depth map generation, recursive geometry, and tessellation, and how they contribute to the final structural canopy.)*
+### Pseudocode for Tree Branching and Canopy Generation
+
+#### Function: Create Branch
+```
+FUNCTION create_branch(start_point, direction, level, angle_range, length_range, max_levels, target_height):
+    IF level > max_levels:
+        RETURN empty list of branches, endpoint adjusted towards target_height
+
+    INITIALIZE branches as empty list
+    INITIALIZE end_points as empty list
+
+    SET branch_length = random value within length_range
+    CALCULATE end_point using start_point and scaled direction vector
+
+    ADD line from start_point to end_point to branches
+
+    SET num_branches = random value (2 or 3)
+
+    FOR each child branch:
+        CALCULATE random angle within angle_range
+        GENERATE random rotation axis
+        ROTATE direction vector using angle and axis
+        NORMALIZE the resulting vector
+
+        CALL create_branch recursively with updated parameters
+        ADD returned branches and endpoints to respective lists
+
+    RETURN branches and end_points
+```
+
+#### Main Program
+```
+INITIALIZE start_point as (x)
+INITIALIZE initial_direction as (0, 0, 1)
+SET angle_range to (-45, 45)
+SET length_range to (2.0, 5.0)
+SET max_levels to 5
+SET target_height to 20.0
+
+CALL create_branch with initial parameters
+
+OUTPUT branches (lines representing tree structure)
+OUTPUT end_points (outermost branch endpoints)
+```
+
+### Key Operations:
+1. Recursive Function:
+   - Generates tree structure by dividing branches into smaller sub-branches.
+
+2. Randomization:
+   - Introduces natural variability in angles, lengths, and branch counts.
+
+3. Rhino Integration:
+   - Adds branches as lines to the Rhino environment for visualization.
+
+4. Termination:
+   - Stops recursion when the maximum branching level is reached, ensuring controlled depth.
+
+
 
 ### Example Structure:
 
-1. **Main Function: Generating the Canopy**
+The structure of the original code can be explained using the provided pseudocode as a reference:
 
-   - **Inputs**:
-     - `base_surface`: The initial surface for the canopy.
-     - `depth_map_control`: Control parameter for depth variation.
-     - `recursion_params`: Parameters for recursive supports.
-     - `tessellation_strategy`: Strategy for surface tessellation.
-     - `support_points`: Points where supports will be generated.
+### **Comparison of Structure**
 
-   - **Process**:
-     - **Generate Depth Map**:
-       - Modify `base_surface` using a control function.
-     - **Tessellate Surface**:
-       - Divide the modified surface into panels.
-     - **Generate Vertical Supports**:
-       - Create supports using recursive geometry.
+1. **Recursive Function:**
+   - Both the original code and the pseudocode center around a recursive function, `create_branch`, which generates branches at each level until the maximum depth is reached.
+   - The recursive structure is defined by:
+     - **Base Case:** Stops recursion when the level exceeds `max_levels`.
+     - **Recursive Case:** Creates child branches by calling `create_branch` with updated parameters.
 
-   - **Outputs**:
-     - `canopy_mesh`: The tessellated canopy shell.
-     - `supports`: The vertical support structures.
+2. **Initialization:**
+   - The pseudocode outlines the initialization of variables like `branches` and `end_points`, directly mirroring the original code’s use of empty lists to store line data and endpoints.
 
-2. **Functions**
+3. **Randomized Parameters:**
+   - Both emphasize the use of randomization for:
+     - Branch lengths (`branch_length`).
+     - Angles of rotation (`angle_range`).
+     - Number of child branches (`num_branches`).
+   - This randomness simulates the organic nature of tree structures.
 
-   - **`generate_depth_map(surface, control_value)`**
-     - *Purpose*: Modify the input surface to create depth variations.
-     - *Implementation Details*:
-       - Use mathematical functions to adjust control points.
-       - Explore different methods for depth manipulation.
+4. **Vector Operations:**
+   - The pseudocode highlights the calculation of `end_point` using the start point and scaled direction vector, a direct representation of operations in the original code like `rs.PointAdd` and `rs.VectorScale`.
 
-   - **`tessellate_surface(surface, strategy)`**
-     - *Purpose*: Tessellate the surface based on the chosen strategy.
-     - *Implementation Details*:
-       - Implement grid-based, triangular, Voronoi, or other tessellation algorithms.
-       - Ensure non-uniformity in the tessellation pattern.
+5. **Main Program Flow:**
+   - The pseudocode captures the overall program structure:
+     1. Set up initial parameters (`start_point`, `initial_direction`, ranges, etc.).
+     2. Call the recursive function with these parameters.
+     3. Output the results for further use or visualization.
+   - This flow matches the original code’s setup and the final `branches` and `end_points` outputs.
 
-   - **`generate_recursive_supports(start_point, params, depth)`**
-     - *Purpose*: Generate branching structures for supports.
-     - *Implementation Details*:
-       - Use recursion to create complex geometries.
-       - Control recursion with parameters like `max_depth` and `angle`.
+6. **Key Operations Integration:**
+   - **Recursive Tree Generation:** Both the pseudocode and original code rely on recursion for hierarchical growth.
+   - **Randomization:** Both introduce variability for natural aesthetics.
+   - **Output:** Both generate outputs for Rhino visualization (`branches` as lines and `end_points` for endpoints).
+
 
 ---
 
 ## Technical Explanation
 
-*(Provide a concise explanation of your code, focusing on how you implemented depth map manipulation, recursive geometry generation, and surface tessellation in Grasshopper Python. Discuss how your approach generates the final structural canopy and the mathematical principles involved.)*
+This project involves designing a canopy supported by 2 L-system-inspired branching tree structures given by 2 points. Using Rhino and Python scripting, a base surface is generated to serve as the foundation for the canopy. The branching tree structure is created through a recursive algorithm that simulates natural growth patterns, defined by parameters such as branch length, angle variation, and hierarchical levels. The tree's endpoints connect to a canopy surface, forming a unified structure. Both the tree and the canopy are converted into meshes, ensuring compatibility with digital fabrication and visualization workflows. This approach balances organic aesthetics with computational precision.
 
 ### Topics to Cover:
 
@@ -94,7 +147,7 @@
 
 1. **Variation 1: [Name/Description]**
 
-   ![Canopy Variation 1](images/canopy.jpg)
+   ![Canopy Variation 1](images/canopy1.jpg)
 
    - **Parameters**:
      - `control_value`: [Value]
